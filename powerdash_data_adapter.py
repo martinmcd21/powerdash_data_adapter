@@ -6,6 +6,7 @@ import os
 
 # Securely pull OpenAI API key from Streamlit secrets
 openai.api_key = os.getenv("OPENAI_API_KEY")
+client = openai.OpenAI()
 
 # Define the Power BI target schema for HR Attrition Dashboard
 TARGET_SCHEMA = [
@@ -45,31 +46,33 @@ Format: {{"Start Dt": "StartDate", "Emp Name": "FullName"}}
 Only map relevant fields.
 """
 
-    response = openai.ChatCompletion.create(
-        model="gpt-4",
-        messages=[
-            {"role": "system", "content": "You are a helpful data assistant."},
-            {"role": "user", "content": prompt}
-        ]
-    )
-
-    mapping_str = response['choices'][0]['message']['content']
-
     try:
+        response = client.chat.completions.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": "You are a helpful data assistant."},
+                {"role": "user", "content": prompt}
+            ]
+        )
+
+        mapping_str = response.choices[0].message.content
         mapping = json.loads(mapping_str)
+
         st.success("✅ Column mapping complete.")
         st.json(mapping)
 
+        # Rename columns and filter based on target schema
         df_mapped = df.rename(columns=mapping)
-
         final_df = df_mapped[[col for col in TARGET_SCHEMA if col in df_mapped.columns]]
+
         st.write("📊 **Transformed Data:**")
         st.dataframe(final_df.head())
 
+        # Allow download
         csv = final_df.to_csv(index=False)
         st.download_button("📥 Download Transformed File", csv, "transformed_hr_data.csv", "text/csv")
 
     except Exception as e:
-        st.error("❌ Failed to parse GPT mapping.")
-        st.text("Raw response:")
-        st.text(mapping_str)
+        st.error("❌ Something went wrong during column mapping.")
+        st.text("Error:")
+        st.text(e)
