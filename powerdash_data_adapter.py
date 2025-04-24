@@ -4,11 +4,11 @@ import openai
 import json
 import os
 
-# Securely pull OpenAI API key from Streamlit secrets
+# Load OpenAI key securely
 openai.api_key = os.getenv("OPENAI_API_KEY")
 client = openai.OpenAI()
 
-# Define the Power BI target schema for HR Attrition Dashboard
+# Dashboard schema options
 schemas = {
     "Recruitment & Hiring Dashboard": [
         "Job ID", "Job Title", "Department", "Job Openings", "Filled Positions",
@@ -46,33 +46,30 @@ schemas = {
     ]
 }
 
-# Add dashboard schema selection
+# Sidebar schema selector
 st.sidebar.header("Dashboard Configuration")
 selected_dashboard = st.sidebar.selectbox("Select a Power BI Dashboard Template", list(schemas.keys()))
 TARGET_SCHEMA = schemas[selected_dashboard]
 
-st.write(f"### Using schema for: {selected_dashboard}")
+# App title and instructions
+st.title("DashPrep – Power BI Data Adapter")
+st.write(f"### Preparing data for: **{selected_dashboard}**")
 
-
-st.title("PowerDash Data Adapter")
-st.write("Upload your HR data and we'll reformat it to fit your Power BI dashboard.")
-
-uploaded_file = st.file_uploader("Upload a CSV or Excel file", type=["csv", "xlsx"])
+uploaded_file = st.file_uploader("📤 Upload your Excel or CSV file", type=["csv", "xlsx"])
 
 if uploaded_file:
-    # Read the file into a dataframe
+    # Read the file
     if uploaded_file.name.endswith(".csv"):
         df = pd.read_csv(uploaded_file)
     else:
         df = pd.read_excel(uploaded_file)
 
-    st.write("🔍 **Preview of your file:**")
+    st.write("🔍 **Preview of your uploaded file:**")
     st.dataframe(df.head())
 
-    # Extract columns from uploaded file
     user_columns = list(df.columns)
 
-    # Create mapping prompt
+    # GPT prompt to match columns
     prompt = f"""
 You are a data expert helping users map spreadsheet columns to a target schema for a Power BI dashboard.
 
@@ -89,31 +86,30 @@ Only map relevant fields.
 
     try:
         response = client.chat.completions.create(
-            model="gpt-3.5-turbo",  # Updated here!
+            model="gpt-3.5-turbo",
             messages=[
                 {"role": "system", "content": "You are a helpful data assistant."},
                 {"role": "user", "content": prompt}
             ]
         )
-
         mapping_str = response.choices[0].message.content
         mapping = json.loads(mapping_str)
 
         st.success("✅ Column mapping complete.")
         st.json(mapping)
 
-        # Rename columns and filter based on target schema
+        # Rename and filter
         df_mapped = df.rename(columns=mapping)
         final_df = df_mapped[[col for col in TARGET_SCHEMA if col in df_mapped.columns]]
 
-        st.write("📊 **Transformed Data:**")
+        st.write("📊 **Cleaned & Matched Data:**")
         st.dataframe(final_df.head())
 
-        # Allow download
+        # Download
         csv = final_df.to_csv(index=False)
-        st.download_button("📥 Download Transformed File", csv, "transformed_hr_data.csv", "text/csv")
+        st.download_button("📥 Download Transformed File", csv, "transformed_data.csv", "text/csv")
 
     except Exception as e:
-        st.error("❌ Something went wrong during column mapping.")
-        st.text("Error:")
-        st.text(e)
+        st.error("❌ Something went wrong with GPT mapping.")
+        st.text("Raw response or error:")
+        st.text(str(e))
