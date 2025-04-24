@@ -5,16 +5,17 @@ import json
 import os
 from PIL import Image
 
-# Load and display the DashPrep logo
-logo_path = "assets/dashprep_logo.png"
-logo = Image.open(logo_path)
-st.sidebar.image(logo, use_column_width=True)
+# Load and display DashPrep logo (only if file exists)
+logo_path = "Assets/dashprep_logo.png"
+if os.path.exists(logo_path):
+    logo = Image.open(logo_path)
+    st.sidebar.image(logo, use_column_width=True)
 
-# Load OpenAI key securely
+# Load OpenAI key
 openai.api_key = os.getenv("OPENAI_API_KEY")
 client = openai.OpenAI()
 
-# Dashboard schema options
+# Schema options
 schemas = {
     "Recruitment & Hiring Dashboard": [
         "Job ID", "Job Title", "Department", "Job Openings", "Filled Positions",
@@ -57,14 +58,12 @@ st.sidebar.header("Dashboard Configuration")
 selected_dashboard = st.sidebar.selectbox("Select a Power BI Dashboard Template", list(schemas.keys()))
 TARGET_SCHEMA = schemas[selected_dashboard]
 
-# App title and instructions
+# Main interface
 st.title("DashPrep – Power BI Data Adapter")
 st.write(f"### Preparing data for: **{selected_dashboard}**")
-
 uploaded_file = st.file_uploader("📤 Upload your Excel or CSV file", type=["csv", "xlsx"])
 
 if uploaded_file:
-    # Read the file
     if uploaded_file.name.endswith(".csv"):
         df = pd.read_csv(uploaded_file)
     else:
@@ -75,7 +74,6 @@ if uploaded_file:
 
     user_columns = list(df.columns)
 
-    # GPT prompt to match columns
     prompt = f"""
 You are a data expert helping users map spreadsheet columns to a target schema for a Power BI dashboard.
 
@@ -104,15 +102,22 @@ Only map relevant fields.
         st.success("✅ Column mapping complete.")
         st.json(mapping)
 
-        # Rename and filter
+        # Apply column mapping
         df_mapped = df.rename(columns=mapping)
         final_df = df_mapped[[col for col in TARGET_SCHEMA if col in df_mapped.columns]]
 
         st.write("📊 **Cleaned & Matched Data:**")
         st.dataframe(final_df.head())
 
-        # Download
+        # Offer download
         csv = final_df.to_csv(index=False)
         st.download_button("📥 Download Transformed File", csv, "transformed_data.csv", "text/csv")
 
-    st.markdown("⚡ Powered by [PowerDash HR](https://www.powerdashhr.com)", unsafe_allow_html=True)
+    except Exception as e:
+        st.error("❌ Something went wrong during column mapping.")
+        st.text("Error:")
+        st.text(str(e))
+
+# Footer
+st.markdown("---")
+st.markdown("⚡ Powered by [PowerDash HR](https://www.powerdashhr.com)", unsafe_allow_html=True)
