@@ -10,6 +10,8 @@ logo_path = "Assets/dashprep_logo.png"
 if os.path.exists(logo_path):
     logo = Image.open(logo_path)
     st.sidebar.image(logo, use_column_width=True)
+else:
+    st.sidebar.write(f"Logo not found at: {logo_path}")
 
 # Load OpenAI key
 openai.api_key = os.getenv("OPENAI_API_KEY")
