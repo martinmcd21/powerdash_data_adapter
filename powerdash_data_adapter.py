@@ -115,7 +115,4 @@ Only map relevant fields.
         csv = final_df.to_csv(index=False)
         st.download_button("📥 Download Transformed File", csv, "transformed_data.csv", "text/csv")
 
-    except Exception as e:
-        st.error("❌ Something went wrong with GPT mapping.")
-        st.text("Raw response or error:")
-        st.text(str(e))
+    st.markdown("⚡ Powered by [PowerDash HR](https://www.powerdashhr.com)", unsafe_allow_html=True)
