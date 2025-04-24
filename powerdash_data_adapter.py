@@ -9,9 +9,50 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 client = openai.OpenAI()
 
 # Define the Power BI target schema for HR Attrition Dashboard
-TARGET_SCHEMA = [
-    "EmployeeID", "FullName", "StartDate", "EndDate", "Department", "Region", "Status"
-]
+schemas = {
+    "Recruitment & Hiring Dashboard": [
+        "Job ID", "Job Title", "Department", "Job Openings", "Filled Positions",
+        "Time-to-Hire (Days)", "Cost-per-Hire (USD)", "Offer Acceptance Rate (%)",
+        "Candidate Source", "Gender", "Ethnicity", "Age Group", "Date", "Job Level"
+    ],
+    "Employee Retention & Turnover Dashboard": [
+        "Employee ID", "Employee Name", "Department", "Hire Date", "Turnover Status",
+        "Exit Date", "Exit Reason", "Voluntary Exit", "Involuntary Exit", "Tenure (Years)",
+        "Engagement Score", "Missed KPI", "Turnover Cost (USD)", "Year", "Quarter", "Month"
+    ],
+    "Payroll & Compensation Dashboard": [
+        "Employees", "Month", "Year", "Employee ID", "Department", "Role", "Experience_Level",
+        "Base_Salary", "Bonus", "Overtime_Hours", "Overtime_Cost", "Last_Pay_Raise_Percentage",
+        "Pay_Raise_Frequency", "Benefits", "Healthcare_Usage", "Retirement_Contribution",
+        "Gender", "Total Payroll Cost"
+    ],
+    "Employee Satisfaction & Engagement Dashboard": [
+        "Month", "Employee Name", "Employee ID", "Department", "Role", "Salary",
+        "Work-Life Balance Score", "Absenteeism Rate", "Employee Net Promoter Score (eNPS)",
+        "Peer Feedback", "Manager Feedback", "Engagement Survey Result"
+    ],
+    "HR Compliance & Policy Adherence Dashboard": [
+        "Employee ID", "Name", "Department", "Age", "Gender", "Position", "IncidentID", "Date",
+        "Type", "Severity", "ReportedBy", "LeaveType", "DaysTaken", "PolicyLimit", "Complaint",
+        "WeekStart", "HoursWorked", "LegalLimit", "Compliant", "ViolationID", "PolicyViolated",
+        "ActionTaken", "TrainingType", "CompletionStatus", "CompletionDate"
+    ],
+    "Learning & Development Dashboard": [
+        "CertificationID", "EmployeeID", "CertificationName", "IssueDate", "ExpiryDate",
+        "IsExpired", "Name", "Role", "Manager", "HireDate", "EnrollmentID", "TrainingID",
+        "Status", "CompletionDate", "Score", "FeedbackRating", "IsCompleted", "SkillArea",
+        "CurrentSkillLevel", "RequiredSkillLevel", "Gap", "Title", "Category", "DeliverMethod",
+        "StartDate", "EndDate"
+    ]
+}
+
+# Add dashboard schema selection
+st.sidebar.header("Dashboard Configuration")
+selected_dashboard = st.sidebar.selectbox("Select a Power BI Dashboard Template", list(schemas.keys()))
+TARGET_SCHEMA = schemas[selected_dashboard]
+
+st.write(f"### Using schema for: {selected_dashboard}")
+
 
 st.title("PowerDash Data Adapter")
 st.write("Upload your HR data and we'll reformat it to fit your Power BI dashboard.")
