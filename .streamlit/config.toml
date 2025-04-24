@@ -1,0 +1,18 @@
+[theme]
+primaryColor="#00b4b6"
+backgroundColor="#0e1117"
+secondaryBackgroundColor="#262730"
+textColor="#ffffff"
+font="sans serif"
+
+[server]
+headless = true
+
+[browser]
+gatherUsageStats = false
+serverAddress = "0.0.0.0"
+serverPort = 8501
+
+[app]
+title = "DashPrep – HR Data Cleaner"
+favicon = "assets/dashprep_logo.png"
