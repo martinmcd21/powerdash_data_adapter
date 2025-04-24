@@ -3,6 +3,12 @@ import pandas as pd
 import openai
 import json
 import os
+from PIL import Image
+
+# Load and display the DashPrep logo
+logo_path = "assets/dashprep_logo.png"
+logo = Image.open(logo_path)
+st.sidebar.image(logo, use_column_width=True)
 
 # Load OpenAI key securely
 openai.api_key = os.getenv("OPENAI_API_KEY")
